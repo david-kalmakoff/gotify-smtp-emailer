@@ -13,5 +13,8 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version: 'stable'
+      - name: "Download tools and dependencies"
+        run: 
+          make download-tools && go get -d
       - name: Test
         run: go test ./...
