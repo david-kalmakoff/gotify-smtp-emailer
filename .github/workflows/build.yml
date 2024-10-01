@@ -1,4 +1,5 @@
 name: "Build Plugin"
+runs-on: self-hosted
 
 on:
   push:
