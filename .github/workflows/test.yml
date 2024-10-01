@@ -9,7 +9,7 @@ on:
 
 jobs:
   test:
-    runs-on: go-1.22.4
+    runs-on: self-hosted
     name: Test plugin
     steps:
       - name: Test
