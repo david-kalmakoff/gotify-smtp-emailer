@@ -63,8 +63,6 @@ environment: development
 
 This will build the plugin and start up ephemeral instances of Gotify (with plugin loaded) and Mailhog. You can use this to manually test the plugin.
 
-**Warning**: The development environment cannot send smtp messages to Mailhog because it is not an encrypted message.
-
 ## Testing
 
 Testing is done with Docker. You can run the test suite with the command:

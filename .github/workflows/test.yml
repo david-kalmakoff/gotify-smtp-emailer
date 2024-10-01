@@ -1,0 +1,15 @@
+name: "Test Plugin"
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: go-1.22.4
+    name: Test plugin
+    steps:
+      - name: Test
+        run: go test ./...

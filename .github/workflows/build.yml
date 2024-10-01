@@ -1,0 +1,36 @@
+name: "Build Plugin"
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - uses: actions/checkout@v2
+            - uses: actions/setup-go@v4
+              with:
+                go-version: 'stable'
+            - name: "Download tools and dependencies"
+              run: 
+                make download-tools && go get -d
+            - name: "Build plugin"
+              run: >
+                  make build || exit 1
+              # run: >
+              #   cat ci/SUPPORTED_VERSIONS.txt | while read TARGET; do
+              #       make GOTIFY_VERSION="$TARGET" FILE_SUFFIX="-for-gotify-$TARGET" build || exit 1
+              #   done
+            - name: "Upload plugin"
+              uses: actions/upload-artifact@v2
+              with:
+                name: gotify-plugin
+                path: build
+            - uses: ncipollo/release-action@v1
+              if: startsWith(github.ref, 'refs/tags/v')
+              with:
+                artifacts: "build/*"
