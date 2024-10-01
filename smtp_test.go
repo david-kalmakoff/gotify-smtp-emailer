@@ -25,7 +25,7 @@ func TestSmtpSend(t *testing.T) {
 	err := smtp.isValid()
 	require.NoError(t, err)
 
-	err = smtp.Send("test title", "test message")
+	err = smtp.Send("test title", "test message", true)
 	require.NoError(t, err)
 
 	// Get client token

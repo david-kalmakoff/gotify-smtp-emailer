@@ -48,6 +48,9 @@ func NewDockerService(ctx context.Context, binPath string) (*DockerService, erro
 				Target: "/app/data/plugins/gotify-smtp-emailer-linux-amd64.so",
 			},
 		},
+		LogConsumerCfg: &testcontainers.LogConsumerConfig{
+			Consumers: []testcontainers.LogConsumer{&testcontainers.StdoutLogConsumer{}},
+		},
 	}
 	s.GotifyContainer, err = testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: req,
@@ -115,6 +118,9 @@ func NewDockerService(ctx context.Context, binPath string) (*DockerService, erro
 		Networks:     []string{networkName},
 		NetworkAliases: map[string][]string{
 			networkName: {"mailhog"},
+		},
+		LogConsumerCfg: &testcontainers.LogConsumerConfig{
+			Consumers: []testcontainers.LogConsumer{&testcontainers.StdoutLogConsumer{}},
 		},
 	}
 	s.MailhogContainer, err = testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{

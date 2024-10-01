@@ -10,9 +10,10 @@ import (
 )
 
 type Config struct {
-	Hostname string // This will be local because they are running on same machine
-	Token    string //Token from client needed for ws connection
-	Smtp     Smtp
+	Hostname    string // This will be local because they are running on same machine
+	Token       string //Token from client needed for ws connection
+	Smtp        Smtp
+	Environment string
 }
 
 func (c *Config) IsValid() error {
@@ -37,6 +38,9 @@ func (c *Config) IsValid() error {
 	}
 	if c.Token == "" {
 		return errors.New("the token is not valid")
+	}
+	if c.Environment != "production" && c.Environment != "development" {
+		return errors.New("the environment is not valid")
 	}
 
 	// test websocket connection
@@ -86,6 +90,7 @@ func (c *Plugin) DefaultConfig() interface{} {
 			Password:  "password",
 			Subject:   "",
 		},
+		Environment: "production",
 	}
 }
 

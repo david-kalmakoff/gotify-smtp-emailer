@@ -39,7 +39,7 @@ func (s *Smtp) isValid() error {
 	return nil
 }
 
-func (s *Smtp) Send(title, message string) error {
+func (s *Smtp) Send(title, message string, development bool) error {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	messageID := strconv.FormatInt(r.Int63(), 10) + "@" + s.Host
 
@@ -66,6 +66,9 @@ func (s *Smtp) Send(title, message string) error {
 		text
 
 	auth := smtp.PlainAuth("", s.FromEmail, s.Password, s.Host)
+	if development {
+		auth = smtp.CRAMMD5Auth(s.FromEmail, s.Password)
+	}
 	uri := fmt.Sprintf("%s:%d", s.Host, s.Port)
 	err := smtp.SendMail(uri, auth, s.FromEmail, s.ToEmails, []byte(content))
 	if err != nil {

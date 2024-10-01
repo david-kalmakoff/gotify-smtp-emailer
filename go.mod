@@ -1,8 +1,6 @@
-module github.com/david-kalmakoff/gotify-smtp-mailer
+module github.com/david-kalmakoff/gotify-smtp-emailer
 
-go 1.21
-
-toolchain go1.23.1
+go 1.22.4
 
 require (
 	github.com/gin-gonic/gin v1.10.0

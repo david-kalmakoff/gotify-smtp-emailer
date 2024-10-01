@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/url"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -51,10 +53,7 @@ func (c *Plugin) Enable() error {
 	// start websocket connection
 	c.connection, err = c.config.getWSConnection()
 	if err != nil {
-		c.msgHandler.SendMessage(plugin.Message{
-			Message: fmt.Sprintf("Could not create websocket connection: %v", err),
-		})
-		return err
+		return fmt.Errorf("could not get ws connection: %w", err)
 	}
 
 	c.done = make(chan bool)
@@ -70,29 +69,54 @@ func (c *Plugin) Enable() error {
 				msg := GotifyMessage{}
 				err := c.connection.ReadJSON(&msg)
 				if err != nil {
-					c.err = fmt.Errorf("connection read failed: %w", err)
+					if _, ok := err.(*websocket.CloseError); ok {
+						return
+					}
+					log.Printf("connection read error: %v", err)
+					continue
 				}
 
 				// send message to smtp
-				err = c.config.Smtp.Send(msg.Title, msg.Message)
+				err = c.config.Smtp.Send(msg.Title, msg.Message, c.config.Environment == "development")
 				if err != nil {
-					c.err = fmt.Errorf("smtp send failed: %w", err)
+					log.Printf("smtp send error: %v", err)
 				}
 			}
 		}
 	}()
 
+	if c.config.Environment == "development" {
+		go func() {
+			for {
+				if !c.enabled {
+					return
+				}
+				c.msgHandler.SendMessage(plugin.Message{
+					Title:   "Test Message",
+					Message: fmt.Sprintf("config: %#v ,error: %v", c.config, c.err),
+				})
+				time.Sleep(time.Second * 10)
+			}
+		}()
+	}
+
 	c.enabled = true
+
 	return nil
 }
 
 // Disable disables the plugin.
 func (c *Plugin) Disable() error {
+	err := c.connection.Close()
+	if err != nil {
+		return fmt.Errorf("could not close connection: %w", err)
+	}
 	c.done <- true
-	c.connection.Close()
+
 	c.connection = nil
 	c.done = nil
 	c.enabled = false
+
 	return nil
 }
 

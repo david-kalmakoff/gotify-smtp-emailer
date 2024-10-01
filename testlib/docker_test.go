@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/david-kalmakoff/gotify-smtp-mailer/testlib"
+	"github.com/david-kalmakoff/gotify-smtp-emailer/testlib"
 	"github.com/stretchr/testify/require"
 )
 
