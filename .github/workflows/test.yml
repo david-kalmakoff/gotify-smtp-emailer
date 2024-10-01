@@ -10,5 +10,8 @@ jobs:
     runs-on: self-hosted
     name: Test plugin
     steps:
+      - uses: actions/setup-go@v4
+        with:
+          go-version: 'stable'
       - name: Test
         run: go test ./...
