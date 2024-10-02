@@ -17,6 +17,7 @@ var baseConfig = Config{
 		ToEmails:  []string{"to@email.com"},
 		Subject:   "Test Subject",
 	},
+	Environment: "production",
 }
 
 func TestConfigIsValid(t *testing.T) {
