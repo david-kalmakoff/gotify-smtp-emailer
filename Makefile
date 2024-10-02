@@ -16,7 +16,6 @@ local:
 	go run cmd/local/main.go
 
 download-tools:
-	# GO111MODULE=off go get -u github.com/gotify/plugin-api/cmd/gomod-cap
 	GO111MODULE=on go get -u github.com/gotify/plugin-api/cmd/gomod-cap
 
 create-build-dir:
