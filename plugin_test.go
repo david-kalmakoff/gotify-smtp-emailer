@@ -23,6 +23,7 @@ func TestAPI(t *testing.T) {
 	cfg := baseConfig
 	cfg.Hostname = s.Url
 	cfg.Token = s.Token
+	cfg.Environment = "development"
 	cfg.Smtp = Smtp{
 		Host:      "localhost",
 		Port:      s.MailhogPort,
@@ -30,6 +31,7 @@ func TestAPI(t *testing.T) {
 		Password:  "password",
 		ToEmails:  []string{"to@email.com"},
 		Subject:   "Test Subject",
+		Insecure:  true,
 	}
 
 	p := new(Plugin)

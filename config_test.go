@@ -16,6 +16,7 @@ var baseConfig = Config{
 		Password:  "password",
 		ToEmails:  []string{"to@email.com"},
 		Subject:   "Test Subject",
+		Insecure:  false,
 	},
 	Environment: "production",
 }

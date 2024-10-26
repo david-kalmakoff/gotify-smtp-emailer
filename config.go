@@ -3,19 +3,25 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
 	"github.com/gorilla/websocket"
 )
 
+// Config represents the config used for the plugin
 type Config struct {
-	Hostname    string // This will be local because they are running on same machine
-	Token       string //Token from client needed for ws connection
-	Smtp        Smtp
+	Hostname string // This will be local because they are running on same machine
+	Token    string //Token from client needed for ws connection
+	Smtp     Smtp
+	// production or development, used for logging and sending messages on a loop
 	Environment string
 }
 
+// ============================================================================
+
+// IsValid is used to validate the plugin configuration
 func (c *Config) IsValid() error {
 	// Validate Config
 	c.Hostname = strings.TrimSpace(c.Hostname)
@@ -59,6 +65,9 @@ func (c *Config) IsValid() error {
 	return nil
 }
 
+// ============================================================================
+
+// getWSConnection is used to establish as websocket connection with Gotify
 func (c *Config) getWSConnection() (*websocket.Conn, error) {
 	count := 0
 	for {
@@ -78,6 +87,7 @@ func (c *Config) getWSConnection() (*websocket.Conn, error) {
 
 // ============================================================================
 
+// DefaultConfig is the default config set for the user
 func (c *Plugin) DefaultConfig() interface{} {
 	return &Config{
 		Hostname: "ws://localhost",
@@ -94,7 +104,9 @@ func (c *Plugin) DefaultConfig() interface{} {
 	}
 }
 
-// ValidateAndSetConfig runs when the user saves the config
+// ============================================================================
+
+// ValidateAndSetConfig is called when the user saves the config
 func (c *Plugin) ValidateAndSetConfig(in interface{}) error {
 	config, ok := in.(*Config)
 	if !ok {
@@ -105,6 +117,8 @@ func (c *Plugin) ValidateAndSetConfig(in interface{}) error {
 	if err != nil {
 		return fmt.Errorf("config is invalid: %w", err)
 	}
+
+	log.Println("SMTP Emailer: updated config")
 
 	c.config = config
 
