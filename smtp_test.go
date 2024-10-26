@@ -20,12 +20,13 @@ func TestSmtpSend(t *testing.T) {
 		Password:  "password",
 		ToEmails:  []string{"to@email.com"},
 		Subject:   "Test Subject",
+		Insecure:  true,
 	}
 
 	err := smtp.isValid()
 	require.NoError(t, err)
 
-	err = smtp.Send("test title", "test message", true)
+	err = smtp.Send("test title", "test message")
 	require.NoError(t, err)
 
 	// Get client token

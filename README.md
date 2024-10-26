@@ -37,6 +37,7 @@ smtp:
   toemails:
     - <to_email> # List of emails to send messages to
   subject: Gotify Notification # Prefix to email subjects that are send
+  insecure: false # SMTP without TLS
 environment: production # Used to send test messages in development
 ```
 
@@ -58,6 +59,7 @@ token: <client_token>
 smtp:
   host: mailhog
   port: 1025
+  insecure: true
 environment: development
 ```
 

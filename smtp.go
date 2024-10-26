@@ -10,6 +10,7 @@ import (
 	"time"
 )
 
+// Smtp represents an SMTP configuration
 type Smtp struct {
 	Host      string
 	Port      int
@@ -17,8 +18,10 @@ type Smtp struct {
 	Password  string
 	ToEmails  []string
 	Subject   string // Optional: included subject string
+	Insecure  bool
 }
 
+// isValid is used to validate the Smtp configuration
 func (s *Smtp) isValid() error {
 	if s.Host == "" {
 		return errors.New("the smtp host is not valid")
@@ -39,7 +42,10 @@ func (s *Smtp) isValid() error {
 	return nil
 }
 
-func (s *Smtp) Send(title, message string, development bool) error {
+// ============================================================================
+
+// Send is used to send an SMTP email
+func (s *Smtp) Send(title, message string) error {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	messageID := strconv.FormatInt(r.Int63(), 10) + "@" + s.Host
 
@@ -66,7 +72,7 @@ func (s *Smtp) Send(title, message string, development bool) error {
 		text
 
 	auth := smtp.PlainAuth("", s.FromEmail, s.Password, s.Host)
-	if development {
+	if s.Insecure {
 		auth = smtp.CRAMMD5Auth(s.FromEmail, s.Password)
 	}
 	uri := fmt.Sprintf("%s:%d", s.Host, s.Port)
