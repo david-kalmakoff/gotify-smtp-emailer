@@ -88,7 +88,7 @@ func (c *Plugin) Enable() error {
 						return
 					}
 					log.Printf("SMTP Emailer: connection read error: %v\n", err)
-					if c.msgHandler != nil {
+					if c.config.Environment == "development" && c.msgHandler != nil {
 						c.msgHandler.SendMessage(plugin.Message{
 							Title:   "SMTP Emailer: Error",
 							Message: fmt.Sprintf("could not read message: %v", err),
