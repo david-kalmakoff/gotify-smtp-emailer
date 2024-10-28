@@ -33,7 +33,7 @@ smtp:
   host: <smtp_host> # SMTP server host
   port: <587|465|25> # SMTP server port
   fromemail: <from_email> # Email to send message from / SMTP username
-  password: <password> # Password for SMTP server
+  password: <password> # Optional: Password for SMTP server, if no password provided SMTP will be used without auth
   toemails:
     - <to_email> # List of emails to send messages to
   subject: Gotify Notification # Prefix to email subjects that are send

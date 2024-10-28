@@ -15,7 +15,7 @@ type Smtp struct {
 	Host      string
 	Port      int
 	FromEmail string
-	Password  string
+	Password  string // Optional: if empty no SMTP auth is used
 	ToEmails  []string
 	Subject   string // Optional: included subject string
 	Insecure  bool
@@ -31,9 +31,6 @@ func (s *Smtp) isValid() error {
 	}
 	if s.FromEmail == "" {
 		return errors.New("the smtp from email is not valid")
-	}
-	if s.Password == "" {
-		return errors.New("the smtp password is not valid")
 	}
 	if len(s.ToEmails) < 1 {
 		return errors.New("the smtp to emails are not valid")
@@ -71,10 +68,19 @@ func (s *Smtp) Send(title, message string) error {
 		"Message-ID: <" + messageID + ">\n\n" +
 		text
 
-	auth := smtp.PlainAuth("", s.FromEmail, s.Password, s.Host)
-	if s.Insecure {
-		auth = smtp.CRAMMD5Auth(s.FromEmail, s.Password)
+	var auth smtp.Auth
+	authType := "nil"
+	if s.Password != "" {
+		if s.Insecure {
+			auth = smtp.CRAMMD5Auth(s.FromEmail, s.Password)
+			authType = "CRAMMD5Auth"
+		} else {
+			auth = smtp.PlainAuth("", s.FromEmail, s.Password, s.Host)
+			authType = "PlainAuth"
+		}
 	}
+
+	fmt.Printf("SMTP Emailer: sending with auth='%s'\n", authType)
 	uri := fmt.Sprintf("%s:%d", s.Host, s.Port)
 	err := smtp.SendMail(uri, auth, s.FromEmail, s.ToEmails, []byte(content))
 	if err != nil {
