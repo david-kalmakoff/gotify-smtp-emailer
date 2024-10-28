@@ -16,7 +16,7 @@ import (
 func GetGotifyPluginInfo() plugin.Info {
 	return plugin.Info{
 		ModulePath:  "https://github.com/david-kalmakoff/gotify-smtp-emailer",
-		Version:     "0.2.0",
+		Version:     "0.2.1",
 		Author:      "David Kalmakoff",
 		Description: "A plugin for sending smtp emails for incoming gotify/server messages.",
 		License:     "MIT",
@@ -41,7 +41,7 @@ type Plugin struct {
 func (c *Plugin) Enable() error {
 	err := c.config.IsValid()
 	if err != nil {
-		if c.config.Environment == "development" && c.msgHandler != nil {
+		if c.msgHandler != nil {
 			c.msgHandler.SendMessage(plugin.Message{
 				Title:   "SMTP Emailer: Error",
 				Message: fmt.Sprintf("config is not valid: %v", err),
@@ -53,7 +53,7 @@ func (c *Plugin) Enable() error {
 	// start websocket connection
 	c.connection, err = c.config.getWSConnection()
 	if err != nil {
-		if c.config.Environment == "development" && c.msgHandler != nil {
+		if c.msgHandler != nil {
 			c.msgHandler.SendMessage(plugin.Message{
 				Title:   "SMTP Emailer: Error",
 				Message: fmt.Sprintf("could not get ws connection: %v", err),
@@ -87,8 +87,8 @@ func (c *Plugin) Enable() error {
 					if _, ok := err.(*websocket.CloseError); ok {
 						return
 					}
-					log.Printf("connection read error: %v\n", err)
-					if c.config.Environment == "development" && c.msgHandler != nil {
+					log.Printf("SMTP Emailer: connection read error: %v\n", err)
+					if c.msgHandler != nil {
 						c.msgHandler.SendMessage(plugin.Message{
 							Title:   "SMTP Emailer: Error",
 							Message: fmt.Sprintf("could not read message: %v", err),
@@ -105,8 +105,8 @@ func (c *Plugin) Enable() error {
 				// send message to smtp
 				err = c.config.Smtp.Send(msg.Title, msg.Message)
 				if err != nil {
-					log.Printf("smtp send error: %v\n", err)
-					if c.config.Environment == "development" && c.msgHandler != nil {
+					log.Printf("SMTP Emailer: smtp send error: %v\n", err)
+					if c.msgHandler != nil {
 						c.msgHandler.SendMessage(plugin.Message{
 							Title:   "SMTP Emailer: Error",
 							Message: fmt.Sprintf("smtp send error: %v", err),
