@@ -12,7 +12,7 @@ test:
 	go test ./...
 
 local:
-	make build
+	make build-linux-amd64
 	go run cmd/local/main.go
 
 download-tools:

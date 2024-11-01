@@ -44,6 +44,7 @@ func TestConfigIsValid(t *testing.T) {
 			name: "should not create invalid config",
 			config: func() Config {
 				cfg := baseConfig
+				cfg.Token = ""
 				return cfg
 			},
 			pass: false,

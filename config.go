@@ -5,9 +5,6 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"time"
-
-	"github.com/gorilla/websocket"
 )
 
 // Config represents the config used for the plugin
@@ -49,40 +46,13 @@ func (c *Config) IsValid() error {
 		return errors.New("the environment is not valid")
 	}
 
-	// test websocket connection
-	conn, err := c.getWSConnection()
-	if err != nil {
-		return fmt.Errorf("could not get ws connection: %w", err)
-	}
-	defer conn.Close()
-
 	// validate smtp
-	err = c.Smtp.isValid()
+	err := c.Smtp.isValid()
 	if err != nil {
 		return fmt.Errorf("smtp is invalid: %w", err)
 	}
 
 	return nil
-}
-
-// ============================================================================
-
-// getWSConnection is used to establish as websocket connection with Gotify
-func (c *Config) getWSConnection() (*websocket.Conn, error) {
-	count := 0
-	for {
-		count++
-		uri := fmt.Sprintf("%s/stream?token=%s", c.Hostname, c.Token)
-		ws, _, err := websocket.DefaultDialer.Dial(uri, nil)
-		if err == nil {
-			return ws, nil
-		}
-		if count > 3 {
-			return nil, fmt.Errorf("Cannot connect to websocket %q: %w", uri, err)
-
-		}
-		time.Sleep(500 * time.Millisecond)
-	}
 }
 
 // ============================================================================
