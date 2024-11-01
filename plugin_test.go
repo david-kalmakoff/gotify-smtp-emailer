@@ -4,15 +4,15 @@ import (
 	"context"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/david-kalmakoff/gotify-smtp-emailer/testlib"
 	"github.com/gotify/plugin-api"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestAPICompatibility(t *testing.T) {
-	assert.Implements(t, (*plugin.Plugin)(nil), new(Plugin))
+	require.Implements(t, (*plugin.Plugin)(nil), new(Plugin))
 	// Add other interfaces you intend to implement here
 }
 
@@ -36,13 +36,19 @@ func TestAPI(t *testing.T) {
 
 	p := new(Plugin)
 	err := p.ValidateAndSetConfig(&cfg)
-	assert.NoError(t, err)
+	require.NoError(t, err)
+	t.Logf("\tP\tshould update config")
 
 	err = p.Enable()
-	assert.NoError(t, err)
+	require.NoError(t, err)
+	t.Logf("\tP\tshould enable plugin")
+
+	// Give plugin time to connect to websocket
+	time.Sleep(1500 * time.Millisecond)
 
 	err = p.Disable()
-	assert.NoError(t, err)
+	require.NoError(t, err)
+	t.Logf("\tP\tshould disable plugin")
 }
 
 func setup(t *testing.T) *testlib.DockerService {

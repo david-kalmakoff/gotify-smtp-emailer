@@ -208,6 +208,7 @@ func (c *Plugin) Disable() error {
 	}
 
 	c.done <- true
+
 	c.connection = nil
 	c.done = nil
 	c.enabled = false
