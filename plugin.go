@@ -16,7 +16,7 @@ import (
 func GetGotifyPluginInfo() plugin.Info {
 	return plugin.Info{
 		ModulePath:  "https://github.com/david-kalmakoff/gotify-smtp-emailer",
-		Version:     "0.2.1",
+		Version:     "0.2.3",
 		Author:      "David Kalmakoff",
 		Description: "A plugin for sending smtp emails for incoming gotify/server messages.",
 		License:     "MIT",
@@ -39,6 +39,16 @@ type Plugin struct {
 
 // Enable is called when the plugin is enabled
 func (c *Plugin) Enable() error {
+	if c.config == nil {
+		if c.msgHandler != nil {
+			c.msgHandler.SendMessage(plugin.Message{
+				Title:   "SMTP Emailer: Error",
+				Message: fmt.Sprintf("no config set"),
+			})
+		}
+		return fmt.Errorf("no config set")
+	}
+
 	err := c.config.IsValid()
 	if err != nil {
 		if c.msgHandler != nil {
@@ -50,6 +60,19 @@ func (c *Plugin) Enable() error {
 		return fmt.Errorf("config is invalid: %w", err)
 	}
 
+	// Start websocket connection
+	go c.handleWS()
+
+	c.enabled = true
+
+	return nil
+}
+
+// ============================================================================
+
+func (c *Plugin) handleWS() {
+	var err error
+
 	// start websocket connection
 	c.connection, err = c.config.getWSConnection()
 	if err != nil {
@@ -59,7 +82,9 @@ func (c *Plugin) Enable() error {
 				Message: fmt.Sprintf("could not get ws connection: %v", err),
 			})
 		}
-		return fmt.Errorf("could not get ws connection: %w", err)
+		c.Disable()
+		log.Printf("SMTP Emailer: could not get ws connection: %v\n", err)
+		return
 	}
 
 	if c.config.Environment == "development" && c.msgHandler != nil {
@@ -71,53 +96,7 @@ func (c *Plugin) Enable() error {
 
 	c.done = make(chan bool)
 
-	go func() {
-		defer close(c.done)
-
-		for {
-			select {
-			case <-c.done:
-				return
-			default:
-				msg := plugin.Message{}
-
-				// Read message from Gotify
-				err := c.connection.ReadJSON(&msg)
-				if err != nil {
-					if _, ok := err.(*websocket.CloseError); ok {
-						return
-					}
-					log.Printf("SMTP Emailer: connection read error: %v\n", err)
-					if c.config.Environment == "development" && c.msgHandler != nil {
-						c.msgHandler.SendMessage(plugin.Message{
-							Title:   "SMTP Emailer: Error",
-							Message: fmt.Sprintf("could not read message: %v", err),
-						})
-					}
-					continue
-				}
-
-				// Do not send email for internal messages
-				if strings.Contains(msg.Title, "SMTP Emailer: ") {
-					continue
-				}
-
-				// send message to smtp
-				err = c.config.Smtp.Send(msg.Title, msg.Message)
-				if err != nil {
-					log.Printf("SMTP Emailer: smtp send error: %v\n", err)
-					if c.msgHandler != nil {
-						c.msgHandler.SendMessage(plugin.Message{
-							Title:   "SMTP Emailer: Error",
-							Message: fmt.Sprintf("smtp send error: %v", err),
-						})
-					}
-					continue
-				}
-
-			}
-		}
-	}()
+	go c.handleMessages()
 
 	// Send test message every 10 seconds in development environment
 	if c.config.Environment == "development" && c.msgHandler != nil {
@@ -134,10 +113,76 @@ func (c *Plugin) Enable() error {
 			}
 		}()
 	}
+}
 
-	c.enabled = true
+// ============================================================================
 
-	return nil
+func (c *Plugin) handleMessages() {
+	defer close(c.done)
+
+	for {
+		select {
+		case <-c.done:
+			return
+		default:
+			msg := plugin.Message{}
+
+			// Read message from Gotify
+			err := c.connection.ReadJSON(&msg)
+			if err != nil {
+				if _, ok := err.(*websocket.CloseError); ok {
+					return
+				}
+				log.Printf("SMTP Emailer: connection read error: %v\n", err)
+				if c.config.Environment == "development" && c.msgHandler != nil {
+					c.msgHandler.SendMessage(plugin.Message{
+						Title:   "SMTP Emailer: Error",
+						Message: fmt.Sprintf("could not read message: %v", err),
+					})
+				}
+				continue
+			}
+
+			// Do not send email for internal messages
+			if strings.Contains(msg.Title, "SMTP Emailer: ") {
+				continue
+			}
+
+			// send message to smtp
+			err = c.config.Smtp.Send(msg.Title, msg.Message)
+			if err != nil {
+				log.Printf("SMTP Emailer: smtp send error: %v\n", err)
+				if c.msgHandler != nil {
+					c.msgHandler.SendMessage(plugin.Message{
+						Title:   "SMTP Emailer: Error",
+						Message: fmt.Sprintf("smtp send error: %v", err),
+					})
+				}
+				continue
+			}
+
+		}
+	}
+}
+
+// ============================================================================
+
+// getWSConnection is used to establish as websocket connection with Gotify
+func (c *Config) getWSConnection() (*websocket.Conn, error) {
+	count := 0
+	for {
+		count++
+		uri := fmt.Sprintf("%s/stream?token=%s", c.Hostname, c.Token)
+		ws, _, err := websocket.DefaultDialer.Dial(uri, nil)
+		if err == nil {
+			return ws, nil
+		}
+		if count > 60 {
+			return nil, fmt.Errorf("Cannot connect to websocket %q: %w", uri, err)
+
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
 }
 
 // ============================================================================
@@ -149,13 +194,20 @@ func (c *Plugin) Disable() error {
 		if c.config.Environment == "development" && c.msgHandler != nil {
 			c.msgHandler.SendMessage(plugin.Message{
 				Title:   "SMTP Emailer: Disabled",
-				Message: "Plugin has been disabled",
+				Message: fmt.Sprintf("could not close ws connection: %v", err),
 			})
 		}
-		return fmt.Errorf("could not close connection: %w", err)
+		log.Printf("SMTP Emailer: could not close ws connection: %v\n", err)
 	}
-	c.done <- true
 
+	if c.config.Environment == "development" && c.msgHandler != nil {
+		c.msgHandler.SendMessage(plugin.Message{
+			Title:   "SMTP Emailer: Disabled",
+			Message: "Plugin has been disabled",
+		})
+	}
+
+	c.done <- true
 	c.connection = nil
 	c.done = nil
 	c.enabled = false
