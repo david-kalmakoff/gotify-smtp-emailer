@@ -1,30 +1,25 @@
-on:
-  push:
-    tags:
-      - v*
-
-permissions:
-  contents: write
-
+name: "Build Plugin"
+on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: setup go
-        uses: actions/setup-go@v5
+      - uses: actions/setup-go@v5
         with:
-          go-version: '1.22.4'
+          go-version: 'stable'
       - name: "Download tools and dependencies"
         run: 
-          make download-tools && go get
+          make download-tools && go get -d
+      - name: "Run tests"
+        run: go test ./...
       - name: "Build plugin"
         run: >
-            make build || exit 1
-        # run: >
-        #   cat ci/SUPPORTED_VERSIONS.txt | while read TARGET; do
-        #       make GOTIFY_VERSION="$TARGET" FILE_SUFFIX="-for-gotify-$TARGET" build || exit 1
-        #   done
+          cat ci/SUPPORTED_VERSIONS.txt | while read TARGET; do
+              make GOTIFY_VERSION="$TARGET" FILE_SUFFIX="-for-gotify-$TARGET" build || exit 1
+          done
       - name: "Upload plugin"
         uses: actions/upload-artifact@v4
         with:

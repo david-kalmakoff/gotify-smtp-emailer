@@ -1,5 +1,5 @@
 BUILDDIR=./build
-GOTIFY_VERSION=v2.5.0
+GOTIFY_VERSION=master
 PLUGIN_NAME=gotify-smtp-emailer
 PLUGIN_ENTRY=plugin.go
 GO_VERSION=`cat $(BUILDDIR)/gotify-server-go-version`
