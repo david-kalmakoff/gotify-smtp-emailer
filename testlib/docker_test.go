@@ -31,7 +31,7 @@ func TestWithGotify(t *testing.T) {
 func setup(t *testing.T) *testlib.DockerService {
 	// Start docker services
 	ctx := context.Background()
-	binPath, err := filepath.Abs(filepath.Join("..", "build", "gotify-smtp-emailer-linux-amd64.so"))
+	binPath, err := filepath.Abs(filepath.Join("..", "build", "gotify-smtp-emailer-linux-amd64-for-gotify-v2.6.0.so"))
 	require.NoError(t, err)
 	s, err := testlib.NewDockerService(ctx, binPath)
 	require.NoError(t, err)

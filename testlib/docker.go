@@ -36,7 +36,7 @@ func NewDockerService(ctx context.Context, binPath string) (*DockerService, erro
 	networkName := s.Network.Name
 
 	req := testcontainers.ContainerRequest{
-		Image:        "gotify/server:2.5.0",
+		Image:        "gotify/server:latest",
 		ExposedPorts: []string{"80/tcp"},
 		WaitingFor:   wait.ForLog("Started listening for plain connection on tcp [::]:80"),
 		Networks:     []string{networkName},
@@ -45,7 +45,7 @@ func NewDockerService(ctx context.Context, binPath string) (*DockerService, erro
 				Source: testcontainers.GenericBindMountSource{
 					HostPath: binPath,
 				},
-				Target: "/app/data/plugins/gotify-smtp-emailer-linux-amd64.so",
+				Target: "/app/data/plugins/gotify-smtp-emailer-linux-amd64-for-gotify-v2.6.0.so",
 			},
 		},
 		LogConsumerCfg: &testcontainers.LogConsumerConfig{
