@@ -13,14 +13,19 @@ import (
 
 // Smtp represents an SMTP configuration
 type Smtp struct {
-	Host      string
-	Port      int
-	FromEmail string
-	FromName  string // Optional: name emails are sent from
-	Password  string // Optional: if empty no SMTP auth is used
-	ToEmails  []string
-	Subject   string // Optional: included subject string
-	Insecure  bool
+	Host     string
+	Port     int
+	Insecure bool
+	Username string
+	Password *string // Optional: if empty no SMTP auth is used
+	Subject  *string // Optional: included subject string
+	From     EmailFrom
+	ToEmails []string
+}
+
+type EmailFrom struct {
+	Email *string // Optional: defaults to send from SMTP username
+	Name  *string // Optional: name included in email from
 }
 
 // isValid is used to validate the Smtp configuration
@@ -31,7 +36,7 @@ func (s *Smtp) isValid() error {
 	if s.Port == 0 {
 		return errors.New("the smtp port is not valid")
 	}
-	if s.FromEmail == "" {
+	if s.Username == "" {
 		return errors.New("the smtp from email is not valid")
 	}
 	if len(s.ToEmails) < 1 {
@@ -49,8 +54,8 @@ func (s *Smtp) Send(title, message string) error {
 	messageID := strconv.FormatInt(r.Int63(), 10) + "@" + s.Host
 
 	subject := title
-	if s.Subject != "" {
-		subject = fmt.Sprintf("%s: %s", s.Subject, title)
+	if s.Subject != nil {
+		subject = fmt.Sprintf("%s: %s", *s.Subject, title)
 	}
 
 	text := "<div>"
@@ -63,37 +68,40 @@ func (s *Smtp) Send(title, message string) error {
 	text += "</div>"
 
 	var content bytes.Buffer
-	if s.FromName != "" {
-		content.WriteString(fmt.Sprintf(
-			"From: %s <%s>\n", s.FromName, s.FromEmail))
-	} else {
-		content.WriteString(fmt.Sprintf(
-			"From: %s\n", s.FromName))
+	fromEmail := s.Username
+	if s.From.Email != nil {
+		fromEmail = *s.From.Email
 	}
+
+	if s.From.Name != nil {
+		content.WriteString(fmt.Sprintf("From: %s <%s>\n", *s.From.Name, fromEmail))
+	} else {
+		content.WriteString(fmt.Sprintf("From: %s\n", fromEmail))
+	}
+
 	content.WriteString(fmt.Sprintf(
 		"To: %s\n", strings.Join(s.ToEmails, ", ")))
 	content.WriteString(fmt.Sprintf("Subject: %s\n", subject))
 	content.WriteString("MIME-version: 1.0;\n")
 	content.WriteString("Content-Type: text/html; charset=\"UTF-8\";\n")
-	content.WriteString(fmt.Sprintf(
-		"Message-ID: <%s>\n\n", messageID))
+	content.WriteString(fmt.Sprintf("Message-ID: <%s>\n\n", messageID))
 	content.WriteString(text)
 
 	var auth smtp.Auth
 	authType := "nil"
-	if s.Password != "" {
+	if s.Password != nil {
 		if s.Insecure {
-			auth = smtp.CRAMMD5Auth(s.FromEmail, s.Password)
+			auth = smtp.CRAMMD5Auth(s.Username, *s.Password)
 			authType = "CRAMMD5Auth"
 		} else {
-			auth = smtp.PlainAuth("", s.FromEmail, s.Password, s.Host)
+			auth = smtp.PlainAuth("", s.Username, *s.Password, s.Host)
 			authType = "PlainAuth"
 		}
 	}
 
 	fmt.Printf("SMTP Emailer: sending with auth='%s'\n", authType)
 	uri := fmt.Sprintf("%s:%d", s.Host, s.Port)
-	err := smtp.SendMail(uri, auth, s.FromEmail, s.ToEmails, content.Bytes())
+	err := smtp.SendMail(uri, auth, fromEmail, s.ToEmails, content.Bytes())
 	if err != nil {
 		return fmt.Errorf("could not send email: %w", err)
 	}

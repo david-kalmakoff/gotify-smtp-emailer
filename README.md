@@ -26,14 +26,19 @@ Started listening for plain connection on tcp [::]:80
 3. Navigate to "Plugins" and click the :gear: icon for the "Gotify SMTP Emailer"
 4. Fill out "Configurer" information and click "Save"
 
+Empty variables are shown as **null**, for example `email: null`.
+
 ```yaml
 hostname: ws://localhost # Keep this as localhost because plugin is running with Gotify
 token: <client_token> # Token from step 2
 smtp:
   host: <smtp_host> # SMTP server host
   port: <587|465|25> # SMTP server port
-  fromemail: <from_email> # Email to send message from / SMTP username
+  username: <username> # Username for SMTP service
   password: <password> # Optional: Password for SMTP server, if no password provided SMTP will be used without auth
+  from:
+    email: <from_email> # Optional: Email to send message from, defaults to SMTP email
+    name: <from_name> # Optional: Name to send message from
   toemails:
     - <to_email> # List of emails to send messages to
   subject: Gotify Notification # Prefix to email subjects that are send

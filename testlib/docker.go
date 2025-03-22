@@ -27,7 +27,7 @@ type DockerService struct {
 	Network          *testcontainers.DockerNetwork
 }
 
-func NewDockerService(ctx context.Context, binPath string) (*DockerService, error) {
+func NewDockerService(ctx context.Context, binPath string, envs ...string) (*DockerService, error) {
 	s := DockerService{}
 
 	var err error
@@ -37,6 +37,13 @@ func NewDockerService(ctx context.Context, binPath string) (*DockerService, erro
 	}
 	networkName := s.Network.Name
 
+	envVars := make(map[string]string)
+	i := 0
+	for i < len(envs) {
+		envVars[envs[i]] = envs[i+1]
+		i = i + 2
+	}
+
 	filename := fmt.Sprintf("gotify-smtp-emailer-linux-amd64%s.so", os.Getenv("FILE_SUFFIX"))
 	version := strings.ReplaceAll(os.Getenv("GOTIFY_VERSION"), "v", "")
 	imageName := fmt.Sprintf("gotify/server:%s", version)
@@ -45,6 +52,7 @@ func NewDockerService(ctx context.Context, binPath string) (*DockerService, erro
 		ExposedPorts: []string{"80/tcp"},
 		WaitingFor:   wait.ForLog("Started listening for plain connection on tcp [::]:80"),
 		Networks:     []string{networkName},
+		Env:          envVars,
 		Mounts: testcontainers.ContainerMounts{
 			{
 				Source: testcontainers.GenericBindMountSource{

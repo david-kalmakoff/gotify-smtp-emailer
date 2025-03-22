@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 )
 
@@ -59,17 +61,36 @@ func (c *Config) IsValid() error {
 
 // DefaultConfig is the default config set for the user
 func (c *Plugin) DefaultConfig() interface{} {
+	if os.Getenv("ENV") == "development" {
+		name := "Gotify SMTP Emailer"
+		email := "from@email.com"
+		return &Config{
+			Hostname: "ws://localhost",
+			Token:    "",
+			Smtp: Smtp{
+				Host:     "mailhog",
+				Port:     1025,
+				Insecure: true,
+				Username: "username@email.com",
+				From: EmailFrom{
+					Name:  &name,
+					Email: &email,
+				},
+				ToEmails: []string{"to@email.com"},
+			},
+			Environment: "development",
+		}
+	}
 	return &Config{
 		Hostname: "ws://localhost",
 		Token:    "",
 		Smtp: Smtp{
-			Host:      "smtp.example.com",
-			Port:      587,
-			FromEmail: "from@email.com",
-			FromName:  "Gotify SMTP Emailer",
-			ToEmails:  []string{"to@email.com"},
-			Password:  "password",
-			Subject:   "",
+			Host:     "smtp.example.com",
+			Port:     587,
+			Insecure: false,
+			Username: "username@email.com",
+			From:     EmailFrom{},
+			ToEmails: []string{"to@email.com"},
 		},
 		Environment: "production",
 	}
@@ -78,10 +99,16 @@ func (c *Plugin) DefaultConfig() interface{} {
 // ============================================================================
 
 // ValidateAndSetConfig is called when the user saves the config
-func (c *Plugin) ValidateAndSetConfig(in interface{}) error {
+func (c *Plugin) ValidateAndSetConfig(in any) error {
 	config, ok := in.(*Config)
 	if !ok {
 		return errors.New("invalid config")
+	}
+
+	if config.Environment == "development" {
+		b, _ := json.MarshalIndent(config, "", " ")
+		log.Println("SMTP Emailer: updating config:")
+		log.Println(string(b))
 	}
 
 	err := config.IsValid()

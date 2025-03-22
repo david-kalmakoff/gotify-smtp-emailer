@@ -22,7 +22,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	s, err := testlib.NewDockerService(ctx, binPath)
+	s, err := testlib.NewDockerService(ctx, binPath, "ENV", "development")
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -15,7 +15,7 @@ test:
 	GOTIFY_VERSION=$(GOTIFY_VERSION) FILE_SUFFIX=$(FILE_SUFFIX) go test ./...
 
 local: build-linux-amd64
-	go run cmd/local/main.go
+	GOTIFY_VERSION=$(GOTIFY_VERSION) FILE_SUFFIX=$(FILE_SUFFIX) go run cmd/local/main.go
 
 download-tools:
 	GO111MODULE=on go install github.com/gotify/plugin-api/cmd/gomod-cap
