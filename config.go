@@ -66,6 +66,7 @@ func (c *Plugin) DefaultConfig() interface{} {
 			Host:      "smtp.example.com",
 			Port:      587,
 			FromEmail: "from@email.com",
+			FromName:  "Gotify SMTP Emailer",
 			ToEmails:  []string{"to@email.com"},
 			Password:  "password",
 			Subject:   "",

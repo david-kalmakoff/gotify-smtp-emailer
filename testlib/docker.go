@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"strings"
 
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/network"
@@ -35,8 +37,11 @@ func NewDockerService(ctx context.Context, binPath string) (*DockerService, erro
 	}
 	networkName := s.Network.Name
 
+	filename := fmt.Sprintf("gotify-smtp-emailer-linux-amd64%s.so", os.Getenv("FILE_SUFFIX"))
+	version := strings.ReplaceAll(os.Getenv("GOTIFY_VERSION"), "v", "")
+	imageName := fmt.Sprintf("gotify/server:%s", version)
 	req := testcontainers.ContainerRequest{
-		Image:        "gotify/server:latest",
+		Image:        imageName,
 		ExposedPorts: []string{"80/tcp"},
 		WaitingFor:   wait.ForLog("Started listening for plain connection on tcp [::]:80"),
 		Networks:     []string{networkName},
@@ -45,7 +50,7 @@ func NewDockerService(ctx context.Context, binPath string) (*DockerService, erro
 				Source: testcontainers.GenericBindMountSource{
 					HostPath: binPath,
 				},
-				Target: "/app/data/plugins/gotify-smtp-emailer-linux-amd64-for-gotify-v2.6.0.so",
+				Target: testcontainers.ContainerMountTarget("/app/data/plugins/" + filename),
 			},
 		},
 		LogConsumerCfg: &testcontainers.LogConsumerConfig{

@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -28,6 +30,7 @@ func TestAPI(t *testing.T) {
 		Host:      "localhost",
 		Port:      s.MailhogPort,
 		FromEmail: "from@email.com",
+		FromName:  "Gotify SMTP Emailer",
 		Password:  "password",
 		ToEmails:  []string{"to@email.com"},
 		Subject:   "Test Subject",
@@ -54,7 +57,8 @@ func TestAPI(t *testing.T) {
 func setup(t *testing.T) *testlib.DockerService {
 	// Start docker services
 	ctx := context.Background()
-	binPath, err := filepath.Abs(filepath.Join("build", "gotify-smtp-emailer-linux-amd64-for-gotify-v2.6.0.so"))
+	filename := fmt.Sprintf("gotify-smtp-emailer-linux-amd64%s.so", os.Getenv("FILE_SUFFIX"))
+	binPath, err := filepath.Abs(filepath.Join("build", filename))
 	require.NoError(t, err)
 	s, err := testlib.NewDockerService(ctx, binPath)
 	require.NoError(t, err)
