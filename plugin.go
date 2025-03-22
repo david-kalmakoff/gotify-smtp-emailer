@@ -16,7 +16,7 @@ import (
 func GetGotifyPluginInfo() plugin.Info {
 	return plugin.Info{
 		ModulePath:  "https://github.com/david-kalmakoff/gotify-smtp-emailer",
-		Version:     "0.2.3",
+		Version:     "0.2.4",
 		Author:      "David Kalmakoff",
 		Description: "A plugin for sending smtp emails for incoming gotify/server messages.",
 		License:     "MIT",

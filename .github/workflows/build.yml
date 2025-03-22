@@ -19,7 +19,7 @@ jobs:
               make GOTIFY_VERSION="$TARGET" FILE_SUFFIX="-for-gotify-$TARGET" build || exit 1
           done
       - name: "Run tests"
-        run: go test -v ./...
+        run: make test
       - name: "Upload plugin"
         uses: actions/upload-artifact@v4
         with:

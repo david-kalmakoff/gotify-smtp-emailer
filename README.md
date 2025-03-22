@@ -46,6 +46,12 @@ environment: production # Used to send test messages in development
 
 ## Development
 
+You will have to install required development dependencies with the following command:
+
+```bash
+make download-tools
+```
+
 Development is done with Docker. You can run a development environment with the command:
 
 ```bash

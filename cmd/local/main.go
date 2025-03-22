@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -15,7 +16,8 @@ func main() {
 	ctx := context.Background()
 
 	log.Println("starting docker")
-	binPath, err := filepath.Abs(filepath.Join("build", "gotify-smtp-emailer-linux-amd64.so"))
+	filename := fmt.Sprintf("gotify-smtp-emailer-linux-amd64%s.so", os.Getenv("FILE_SUFFIX"))
+	binPath, err := filepath.Abs(filepath.Join("build", filename))
 	if err != nil {
 		log.Fatal(err)
 	}

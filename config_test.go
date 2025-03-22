@@ -13,6 +13,7 @@ var baseConfig = Config{
 		Host:      "smtp.host.com",
 		Port:      587,
 		FromEmail: "from@email.com",
+		FromName:  "Gotify SMTP Emailer",
 		Password:  "password",
 		ToEmails:  []string{"to@email.com"},
 		Subject:   "Test Subject",
