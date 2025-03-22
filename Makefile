@@ -33,7 +33,7 @@ get-gotify-server-go-version: create-build-dir
 	rm ${BUILDDIR}/gotify-server-go-version || true
 	wget -LO ${BUILDDIR}/gotify-server-go-version https://raw.githubusercontent.com/gotify/server/${GOTIFY_VERSION}/GO_VERSION
 
-build-linux-amd6 : get-gotify-server-go-version update-go-mod
+build-linux-amd64 : get-gotify-server-go-version update-go-mod
 	${DOCKER_RUN} ${DOCKER_BUILD_IMAGE}:$(GO_VERSION)-linux-amd64 ${DOCKER_GO_BUILD} -o ${BUILDDIR}/${PLUGIN_NAME}-linux-amd64${FILE_SUFFIX}.so ${DOCKER_WORKDIR}
 
 build-linux-arm-7: get-gotify-server-go-version update-go-mod
