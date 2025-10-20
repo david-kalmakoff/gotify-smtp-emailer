@@ -1,5 +1,5 @@
 BUILDDIR=./build
-GOTIFY_VERSION=v2.6.3
+GOTIFY_VERSION=v2.7.3
 FILE_SUFFIX=-for-gotify-$(GOTIFY_VERSION)
 PLUGIN_NAME=gotify-smtp-emailer
 PLUGIN_ENTRY=plugin.go
